@@ -1,0 +1,13 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: shellcheck
+        run: shellcheck metabase-scalingo-hardening/*.sh
+      - name: secver self-check
+        run: metabase-scalingo-hardening/test.sh
+      - name: audit end-to-end self-check
+        run: metabase-scalingo-hardening/test_audit.sh

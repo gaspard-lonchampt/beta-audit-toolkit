@@ -1,0 +1,42 @@
+[
+  {
+    "ghsa_id": "GHSA-test-0001",
+    "cve_id": "CVE-2026-72898",
+    "severity": "critical",
+    "vulnerabilities": [
+      { "patched_versions": "0.63.10" }
+    ]
+  },
+  {
+    "ghsa_id": "GHSA-test-0002",
+    "cve_id": "CVE-2025-11111",
+    "severity": "high",
+    "vulnerabilities": [
+      { "patched_versions": "0.50.20" }
+    ]
+  },
+  {
+    "ghsa_id": "GHSA-test-0003",
+    "cve_id": null,
+    "severity": "medium",
+    "vulnerabilities": [
+      { "patched_versions": ">= 0.63.5, 0.63.5" }
+    ]
+  },
+  {
+    "ghsa_id": "GHSA-test-0004",
+    "cve_id": "CVE-2026-55555",
+    "severity": "high",
+    "vulnerabilities": [
+      { "patched_versions": "55.13" }
+    ]
+  },
+  {
+    "ghsa_id": "GHSA-test-0005",
+    "cve_id": "CVE-2026-66666",
+    "severity": "high",
+    "vulnerabilities": [
+      { "patched_versions": "x.60.5" }
+    ]
+  }
+]
