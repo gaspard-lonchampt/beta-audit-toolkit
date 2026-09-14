@@ -34,7 +34,7 @@ compte collaborateur/owner du périmètre à auditer, ou faites tourner chaque
 
 | Outil | Rôle |
 |-------|------|
-| [`metabase-scalingo-hardening`](./metabase-scalingo-hardening) | Audite le durcissement des instances Metabase : clé de chiffrement au repos, version vs advisories GitHub (patchs de sécurité), exposition de l'API. |
+| [`metabase-scalingo-hardening`](./metabase-scalingo-hardening) | Audite le durcissement des instances Metabase : clé de chiffrement au repos, clé de signature de session, version vs advisories GitHub (patchs de sécurité), exposition de l'API, embedding. |
 
 ## Ajouter un outil
 

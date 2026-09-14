@@ -56,6 +56,9 @@ while read -r app; do
     echo "$env" | grep -q '^MB_ENCRYPTION_SECRET_KEY=' \
       || actions+=("🔴 Poser MB_ENCRYPTION_SECRET_KEY (rotation requise si des secrets sont déjà stockés)")
 
+    echo "$env" | grep -q '^MB_SESSION_SECRET_KEY=' \
+      || actions+=("🔴 Poser MB_SESSION_SECRET_KEY (sessions non signées : un accès DB seul peut forger/réutiliser une session)")
+
     realver=""
     mbtmp=$(mktemp)
     if curl -s -m 8 -o "$mbtmp" "https://${app}.${REGION}.scalingo.io/api/session/properties" 2>/dev/null; then

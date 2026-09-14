@@ -63,7 +63,7 @@ expect_rc() { # desc want got
 }
 
 echo "Case A: hardened app, patched pinned version -> OK, exit 0"
-printf 'MB_ENCRYPTION_SECRET_KEY=xxx\nMETABASE_VERSION=0.49.10\n' > "$TD/env_ok"
+printf 'MB_ENCRYPTION_SECRET_KEY=xxx\nMB_SESSION_SECRET_KEY=xxx\nMETABASE_VERSION=0.49.10\n' > "$TD/env_ok"
 STUB_ENV_FILE="$TD/env_ok" STUB_API_EXPOSED=0 bash ./audit.sh > "$TD/out_a" 2>&1; rc=$?
 expect "app reported healthy"        "✅ testapp"          "$TD/out_a"
 expect "version noted as up to date" "0.49.10, sécu à jour" "$TD/out_a"
@@ -93,7 +93,7 @@ expect "embedding flagged" "Embedding activé" "$TD/out_d"
 expect_rc "exit code 1" 1 "$rc"
 
 echo "Case D2: embedding explicitly disabled -> not flagged, app healthy"
-printf 'MB_ENCRYPTION_SECRET_KEY=xxx\nMETABASE_VERSION=0.49.10\nMB_ENABLE_EMBEDDING=false\n' > "$TD/env_embed_off"
+printf 'MB_ENCRYPTION_SECRET_KEY=xxx\nMB_SESSION_SECRET_KEY=xxx\nMETABASE_VERSION=0.49.10\nMB_ENABLE_EMBEDDING=false\n' > "$TD/env_embed_off"
 STUB_ENV_FILE="$TD/env_embed_off" STUB_API_EXPOSED=0 bash ./audit.sh > "$TD/out_d2" 2>&1; rc=$?
 expect "app reported healthy" "✅ testapp" "$TD/out_d2"
 expect_rc "exit code 0" 0 "$rc"
@@ -142,10 +142,16 @@ expect "threshold in instance scheme" ">= 0.55.13" "$TD/out_j"
 expect_rc "exit code 1" 1 "$rc"
 
 echo "Case K: new-scheme version at patch threshold -> OK, exit 0"
-printf 'MB_ENCRYPTION_SECRET_KEY=xxx\nMETABASE_VERSION=55.13\n' > "$TD/env_new_ok"
+printf 'MB_ENCRYPTION_SECRET_KEY=xxx\nMB_SESSION_SECRET_KEY=xxx\nMETABASE_VERSION=55.13\n' > "$TD/env_new_ok"
 STUB_ENV_FILE="$TD/env_new_ok" STUB_API_EXPOSED=0 bash ./audit.sh > "$TD/out_k" 2>&1; rc=$?
 expect "app reported healthy" "✅ testapp : OK (55.13, sécu à jour)" "$TD/out_k"
 expect_rc "exit code 0" 0 "$rc"
+
+echo "Case M: no session secret key on otherwise hardened app -> flagged, exit 1"
+printf 'MB_ENCRYPTION_SECRET_KEY=xxx\nMETABASE_VERSION=0.49.10\n' > "$TD/env_nosession"
+STUB_ENV_FILE="$TD/env_nosession" STUB_API_EXPOSED=0 bash ./audit.sh > "$TD/out_m" 2>&1; rc=$?
+expect "missing session key flagged" "MB_SESSION_SECRET_KEY" "$TD/out_m"
+expect_rc "exit code 1" 1 "$rc"
 
 echo "Case G: real scalingo CLI table format matches the parser (contract)"
 # Extract the awk program from audit.sh itself so the test never drifts from the code.

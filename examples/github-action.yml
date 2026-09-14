@@ -1,0 +1,23 @@
+name: metabase-hardening-audit
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: scalingo-community/setup-scalingo@v0.1.1
+        with:
+          region: osc-fr1
+          api_token: ${{ secrets.SCALINGO_API_TOKEN }}
+
+      - name: Audit Metabase hardening
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCALINGO_REGION: osc-fr1
+        run: bash metabase-scalingo-hardening/audit.sh

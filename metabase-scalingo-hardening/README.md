@@ -33,6 +33,7 @@ Pour chaque instance Metabase détectée (indépendamment du nom de l'app : pré
 | Point vérifié | Risque si absent |
 |---|---|
 | `MB_ENCRYPTION_SECRET_KEY` posée | secrets Metabase (mots de passe des sources) stockés en clair dans la base de métadonnées |
+| `MB_SESSION_SECRET_KEY` posée | sessions non signées en base : un accès DB seul (ex. SQLi) peut forger ou réutiliser une session |
 | Version ≥ patch de sécurité de sa branche ([GitHub Advisories](https://github.com/metabase/metabase/security/advisories)) | instance vulnérable |
 | API non joignable sans authentification | vecteur pré-auth exploité par la CVE (l'URL Scalingo par défaut reste souvent joignable) |
 | Embedding désactivé (`MB_ENABLE_EMBEDDING`) | surface d'attaque + clé de signature à protéger |
@@ -104,6 +105,16 @@ Deux options propres pour le `GITHUB_TOKEN` :
   ```cron
   0 6 * * *  . "$HOME/.config/beta-audit.env" && cd /chemin/metabase-scalingo-hardening && ./audit.sh
   ```
+
+## Lancer en CI (GitHub Actions)
+
+Exemple prêt à copier : [`examples/github-action.yml`](../examples/github-action.yml) (audit quotidien + déclenchement manuel).
+
+- **`setup-scalingo`** installe et authentifie le CLI via `api_token` ; `region` est requis, pas besoin de `app_name` (l'audit itère sur toutes les apps du compte).
+- **`GITHUB_TOKEN`** est celui fourni automatiquement par Actions (`secrets.GITHUB_TOKEN`), rien à créer : il suffit à passer la limite de rate de l'API Advisories.
+- Seul secret à poser : **`SCALINGO_API_TOKEN`** (Settings → Secrets), chiffré, jamais inline.
+- Alerte native : l'audit sort en `1`/`2` → le workflow passe au rouge et GitHub notifie (ajouter une étape `if: failure()` pour un push Mattermost/Slack).
+- Le workflow est livré dans `examples/` (non actif) pour ne pas exiger un secret des personnes qui clonent : copiez-le dans `.github/workflows/` d'un repo d'ops qui porte le secret et le périmètre à auditer.
 
 ## Comment les versions sont comparées
 
