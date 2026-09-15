@@ -5,21 +5,6 @@
 
 Audit du durcissement des instances **Metabase** hébergées sur Scalingo, en une commande, **sans exposer aucun secret**.
 
-## Sommaire
-
-- [Pourquoi](#pourquoi)
-- [Ce qu'il vérifie](#ce-quil-vérifie)
-- [Prérequis](#prérequis)
-- [Installation](#installation)
-- [Utilisation](#utilisation)
-- [Sortie](#sortie)
-- [Codes de sortie](#codes-de-sortie)
-- [Comment les versions sont comparées](#comment-les-versions-sont-comparées)
-- [Conception et garanties](#conception-et-garanties)
-- [Tests](#tests)
-- [Limites](#limites)
-- [Licence](#licence)
-
 ## Pourquoi
 
 Une instance Metabase montée il y a longtemps peut passer à côté des points de durcissement clés sans que personne ne le sache. Motivation directe : la **CVE-2026-72898** (injection SQL non authentifiée, CVSS 10.0), exploitable **avant** l'écran de connexion, donc non couverte par le login natif de Metabase.
@@ -42,7 +27,7 @@ Pour chaque instance Metabase détectée (indépendamment du nom de l'app : pré
 
 - `bash`, `curl`, `python3`
 - [CLI Scalingo](https://cli.scalingo.com/) **authentifiée** (`scalingo login`) — l'audit ne voit que les apps du compte
-- `GITHUB_TOKEN` (recommandé) : sans lui, l'API GitHub Advisories est limitée à 60 req/h
+- `GITHUB_TOKEN` (recommandé) : token lecture seule, aucun scope requis ; sans lui, l'API GitHub Advisories est limitée à 60 req/h
 
 ## Installation
 
@@ -57,11 +42,11 @@ Aucun build : `audit.sh` est directement exécutable.
 
 ```bash
 scalingo login                 # authentifie le CLI
-export GITHUB_TOKEN=ghp_xxx    # recommandé (token lecture seule, aucun scope requis)
+export GITHUB_TOKEN=ghp_xxx    # recommandé, voir Prérequis
 ./audit.sh
 ```
 
-Rien n'est écrit ni modifié : l'outil lit l'environnement des apps et teste la **présence** des variables, jamais leur valeur.
+Rien n'est écrit ni modifié : l'audit est en lecture seule.
 
 ## Sortie
 
@@ -85,28 +70,17 @@ Une ligne par instance ; chaque action porte une pastille :
 
 ## Codes de sortie
 
-Pensés pour l'alerte automatique en cron/CI.
-
 | Code | Sens |
 |---|---|
 | `0` | Rien à traiter |
 | `1` | Au moins une app à traiter |
 | `2` | Audit impossible : CLI Scalingo non authentifiée, ou advisories GitHub injoignables (rate-limit) |
 
-Deux options propres pour le `GITHUB_TOKEN` :
+## Automatiser (cron / CI)
 
-- **CI / Scheduler (recommandé)** : stockez `GITHUB_TOKEN` dans le coffre à secrets de la plateforme (secrets GitHub Actions, variables d'env Scalingo…), jamais inline.
-- **Cron sur une machine** : token dans un fichier lisible par vous seul, sourcé au lancement :
+Tout code de sortie différent de `0` doit lever une alerte.
 
-  ```bash
-  # ~/.config/beta-audit.env   (chmod 600)
-  export GITHUB_TOKEN=ghp_xxx
-  ```
-  ```cron
-  0 6 * * *  . "$HOME/.config/beta-audit.env" && cd /chemin/metabase-scalingo-hardening && ./audit.sh
-  ```
-
-## Lancer en CI (GitHub Actions)
+### GitHub Actions (recommandé)
 
 Exemple prêt à copier : [`examples/github-action.yml`](../examples/github-action.yml) (audit quotidien + déclenchement manuel).
 
@@ -115,6 +89,18 @@ Exemple prêt à copier : [`examples/github-action.yml`](../examples/github-acti
 - Seul secret à poser : **`SCALINGO_API_TOKEN`** (Settings → Secrets), chiffré, jamais inline.
 - Alerte native : l'audit sort en `1`/`2` → le workflow passe au rouge et GitHub notifie (ajouter une étape `if: failure()` pour un push Mattermost/Slack).
 - Le workflow est livré dans `examples/` (non actif) pour ne pas exiger un secret des personnes qui clonent : copiez-le dans `.github/workflows/` d'un repo d'ops qui porte le secret et le périmètre à auditer.
+
+### Cron sur une machine
+
+`GITHUB_TOKEN` dans un fichier lisible par vous seul, sourcé au lancement, jamais inline dans la crontab :
+
+```bash
+# ~/.config/beta-audit.env   (chmod 600)
+export GITHUB_TOKEN=ghp_xxx
+```
+```cron
+0 6 * * *  . "$HOME/.config/beta-audit.env" && cd /chemin/metabase-scalingo-hardening && ./audit.sh
+```
 
 ## Comment les versions sont comparées
 
